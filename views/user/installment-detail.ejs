@@ -1,0 +1,190 @@
+<%- include('../partials/header') %>
+
+<div class="page-header">
+    <h1><%= title %></h1>
+    <p>Nomor Cicilan: <%= header.installment_number %></p>
+</div>
+
+<div class="card">
+    <div class="card-header">Detail Cicilan</div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+            <div>
+                <strong>Produk:</strong> <%= header.product_name %><br>
+                <strong>Berat:</strong> <%= header.product_weight %> gram
+            </div>
+            <div>
+                <strong>Harga Jual (per gram):</strong> <%= formatCurrency(header.sell_price) %><br>
+                <strong>Total Harga:</strong> <%= formatCurrency(header.total_price) %>
+            </div>
+            <div>
+                <strong>DP:</strong> <%= formatCurrency(header.dp_amount) %><br>
+                <strong>Admin Fee:</strong> <%= formatCurrency(header.admin_fee) %>
+            </div>
+            <div>
+                <strong>Pokok Pinjaman:</strong> <%= formatCurrency(header.principal_amount) %><br>
+                <strong>Total Margin:</strong> <%= formatCurrency(header.margin_amount) %>
+            </div>
+            <div>
+                <strong>Tenor:</strong> <%= header.tenor_months %> bulan<br>
+                <strong>Cicilan/Bulan:</strong> <%= formatCurrency(header.monthly_payment) %>
+            </div>
+            <div>
+                <strong>Total Pembayaran:</strong> <%= formatCurrency(header.total_payment) %><br>
+                <strong>Status:</strong> <span class="badge badge-<%= header.status %>"><%= header.status %></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Jadwal Angsuran</div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Bulan</th>
+                    <th>Jatuh Tempo</th>
+                    <th>Cicilan Pokok</th>
+                    <th>Cicilan Margin</th>
+                    <th>Total</th>
+                    <th>Denda</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% details.forEach(detail => { %>
+                    <%
+                    const today = new Date();
+                    const dueDate = new Date(detail.due_date);
+                    const isPast = dueDate < today;
+                    const daysDiff = isPast ? Math.ceil((today - dueDate) / (1000 * 60 * 60 * 24)) : 0;
+                    const estimatedPenalty = detail.payment_status === 'unpaid' && isPast
+                        ? detail.total_amount * (penaltyPerDay / 100) * daysDiff
+                        : detail.penalty_amount;
+                    %>
+                    <tr>
+                        <td><%= detail.month_number %></td>
+                        <td><%= formatDate(detail.due_date) %></td>
+                        <td><%= formatCurrency(detail.principal_amount) %></td>
+                        <td><%= formatCurrency(detail.margin_amount) %></td>
+                        <td><%= formatCurrency(detail.total_amount) %></td>
+                        <td>
+                            <%= formatCurrency(estimatedPenalty) %>
+                            <% if (detail.payment_status === 'unpaid' && isPast) { %>
+                                <br><small style="color: var(--danger-color);">Terlambat <%= daysDiff %> hari</small>
+                            <% } %>
+                        </td>
+                        <td>
+                            <span class="badge badge-<%= detail.payment_status %>">
+                                <%= detail.payment_status %>
+                            </span>
+                        </td>
+                        <td>
+                            <% if (detail.payment_status === 'unpaid' && header.status === 'active') { %>
+                                <button class="btn btn-sm btn-success" onclick="showPaymentModal(<%= detail.id %>, <%= detail.total_amount %>, <%= estimatedPenalty %>)">
+                                    Bayar
+                                </button>
+                            <% } else if (detail.payment_status === 'paid' || detail.payment_status === 'late') { %>
+                                <small style="color: var(--success-color);">✓ Lunas</small>
+                            <% } %>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Payment Modal -->
+<div id="paymentModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Konfirmasi Pembayaran</h2>
+            <button class="modal-close" onclick="closeModal('paymentModal')">&times;</button>
+        </div>
+        <form id="paymentForm" onsubmit="handlePayment(event)">
+            <input type="hidden" id="detailId" name="detailId">
+
+            <div class="form-group">
+                <label>Jumlah Cicilan</label>
+                <input type="text" id="payAmount" class="form-control" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>Denda (jika ada)</label>
+                <input type="text" id="payPenalty" class="form-control" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>Total yang Harus Dibayar</label>
+                <input type="text" id="payTotal" class="form-control" readonly style="font-weight: bold;">
+            </div>
+
+            <div class="form-group">
+                <label>Metode Pembayaran</label>
+                <select name="payment_method" class="form-control">
+                    <option value="Transfer Bank">Transfer Bank</option>
+                    <option value="Cash">Cash</option>
+                    <option value="E-Wallet">E-Wallet</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Nomor Referensi (opsional)</label>
+                <input type="text" name="reference_number" class="form-control" placeholder="Nomor referensi pembayaran">
+            </div>
+
+            <div class="alert alert-info">
+                Pastikan Anda telah melakukan pembayaran sesuai dengan jumlah yang tertera.
+            </div>
+
+            <div class="flex gap-2">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('paymentModal')">Batal</button>
+                <button type="submit" class="btn btn-success">Konfirmasi Pembayaran</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let currentDetailId = null;
+let currentTotalAmount = 0;
+
+function showPaymentModal(detailId, amount, penalty) {
+    currentDetailId = detailId;
+    currentTotalAmount = amount + penalty;
+
+    document.getElementById('detailId').value = detailId;
+    document.getElementById('payAmount').value = formatCurrency(amount);
+    document.getElementById('payPenalty').value = formatCurrency(penalty);
+    document.getElementById('payTotal').value = formatCurrency(currentTotalAmount);
+
+    openModal('paymentModal');
+}
+
+async function handlePayment(event) {
+    event.preventDefault();
+
+    const formData = new FormData(event.target);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+        const response = await API.post(`/api/installments/<%= header.id %>/pay/${currentDetailId}`, {
+            payment_amount: currentTotalAmount,
+            payment_method: data.payment_method,
+            reference_number: data.reference_number || null
+        });
+
+        if (response.success) {
+            showAlert('Pembayaran berhasil dicatat', 'success');
+            setTimeout(() => location.reload(), 1000);
+        }
+    } catch (error) {
+        showAlert(error.message || 'Gagal mencatat pembayaran', 'danger');
+    }
+}
+</script>
+
+<%- include('../partials/footer') %>

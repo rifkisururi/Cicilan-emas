@@ -1,0 +1,87 @@
+<%- include('../partials/header') %>
+
+<div class="page-header">
+    <h1><%= title %></h1>
+    <p>Nomor Cicilan: <%= header.installment_number %></p>
+</div>
+
+<div class="card">
+    <div class="card-header">Informasi User</div>
+    <div class="card-body">
+        <p><strong>Nama:</strong> <%= header.user_name %></p>
+        <p><strong>Email:</strong> <%= header.user_email %></p>
+        <p><strong>Telepon:</strong> <%= header.user_phone || '-' %></p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Detail Cicilan</div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+            <div>
+                <strong>Produk:</strong> <%= header.product_name %><br>
+                <strong>Berat:</strong> <%= header.product_weight %> gram
+            </div>
+            <div>
+                <strong>Harga Jual (per gram):</strong> <%= formatCurrency(header.sell_price) %><br>
+                <strong>Total Harga:</strong> <%= formatCurrency(header.total_price) %>
+            </div>
+            <div>
+                <strong>DP:</strong> <%= formatCurrency(header.dp_amount) %><br>
+                <strong>Admin Fee:</strong> <%= formatCurrency(header.admin_fee) %>
+            </div>
+            <div>
+                <strong>Pokok Pinjaman:</strong> <%= formatCurrency(header.principal_amount) %><br>
+                <strong>Total Margin:</strong> <%= formatCurrency(header.margin_amount) %>
+            </div>
+            <div>
+                <strong>Tenor:</strong> <%= header.tenor_months %> bulan<br>
+                <strong>Cicilan/Bulan:</strong> <%= formatCurrency(header.monthly_payment) %>
+            </div>
+            <div>
+                <strong>Total Pembayaran:</strong> <%= formatCurrency(header.total_payment) %><br>
+                <strong>Status:</strong> <span class="badge badge-<%= header.status %>"><%= header.status %></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Jadwal Angsuran</div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Bulan</th>
+                    <th>Jatuh Tempo</th>
+                    <th>Cicilan Pokok</th>
+                    <th>Cicilan Margin</th>
+                    <th>Total</th>
+                    <th>Denda</th>
+                    <th>Status</th>
+                    <th>Tgl Bayar</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% details.forEach(detail => { %>
+                    <tr>
+                        <td><%= detail.month_number %></td>
+                        <td><%= formatDate(detail.due_date) %></td>
+                        <td><%= formatCurrency(detail.principal_amount) %></td>
+                        <td><%= formatCurrency(detail.margin_amount) %></td>
+                        <td><%= formatCurrency(detail.total_amount) %></td>
+                        <td><%= formatCurrency(detail.penalty_amount) %></td>
+                        <td>
+                            <span class="badge badge-<%= detail.payment_status %>">
+                                <%= detail.payment_status %>
+                            </span>
+                        </td>
+                        <td><%= detail.payment_date ? formatDateTime(detail.payment_date) : '-' %></td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,154 @@
+<%- include('../partials/header') %>
+
+<div class="page-header">
+    <h1><%= title %></h1>
+    <p>Isi form berikut untuk mengajukan cicilan emas</p>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+    <div class="card">
+        <div class="card-header">Detail Produk</div>
+        <div class="card-body">
+            <%
+            const primaryImage = product.images.find(img => img.is_primary);
+            const imagePath = primaryImage ? primaryImage.image_path : null;
+            const sellPrice = currentPrice ? currentPrice.sell_price : product.base_price;
+            const totalPrice = sellPrice * product.weight_gram;
+            %>
+            <% if (imagePath) { %>
+                <img src="<%= imagePath %>" alt="<%= product.product_name %>" style="width: 100%; max-height: 300px; object-fit: cover; border-radius: 10px; margin-bottom: 1rem;">
+            <% } %>
+            <h3><%= product.product_name %></h3>
+            <p><strong>Berat:</strong> <%= product.weight_gram %> gram</p>
+            <p><strong>Harga per gram:</strong> <%= formatCurrency(sellPrice) %></p>
+            <p><strong>Total Harga:</strong> <span style="font-size: 1.5rem; color: var(--primary-dark);"><%= formatCurrency(totalPrice) %></span></p>
+            <p><%= product.description %></p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Form Pengajuan</div>
+        <div class="card-body">
+            <form id="applyForm" onsubmit="handleApply(event)">
+                <input type="hidden" name="product_id" value="<%= product.id %>">
+
+                <div class="form-group">
+                    <label>Down Payment (DP)</label>
+                    <input type="number" id="dpAmount" name="dp_amount" class="form-control" required min="0">
+                    <small style="color: var(--gray-text);">
+                        Min: <%= systemConfig.min_dp_percent %>% (<%= formatCurrency(totalPrice * systemConfig.min_dp_percent / 100) %>) -
+                        Max: <%= systemConfig.max_dp_percent %>% (<%= formatCurrency(totalPrice * systemConfig.max_dp_percent / 100) %>)
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label>Tenor (bulan)</label>
+                    <select name="tenor" id="tenor" class="form-control" required>
+                        <option value="">Pilih Tenor</option>
+                        <option value="12">12 Bulan</option>
+                        <option value="18">18 Bulan</option>
+                        <option value="24">24 Bulan</option>
+                        <option value="30">30 Bulan</option>
+                        <option value="36">36 Bulan</option>
+                        <option value="42">42 Bulan</option>
+                        <option value="48">48 Bulan</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <button type="button" class="btn btn-info" onclick="calculatePreview()">
+                        Hitung Simulasi
+                    </button>
+                </div>
+
+                <div id="simulationResult" style="display: none; margin-top: 1rem; padding: 1rem; background: var(--light-bg); border-radius: 5px;">
+                    <h4>Simulasi Cicilan</h4>
+                    <p><strong>Total Harga:</strong> <span id="sim-total"></span></p>
+                    <p><strong>DP:</strong> <span id="sim-dp"></span></p>
+                    <p><strong>Biaya Admin:</strong> <span id="sim-admin"></span></p>
+                    <p><strong>Pokok Pinjaman:</strong> <span id="sim-principal"></span></p>
+                    <p><strong>Total Margin:</strong> <span id="sim-margin"></span></p>
+                    <hr>
+                    <p><strong>Cicilan per Bulan:</strong> <span id="sim-monthly" style="font-size: 1.5rem; color: var(--primary-dark);"></span></p>
+                    <p><strong>Total Pembayaran:</strong> <span id="sim-total-payment"></span></p>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" style="margin-top: 1rem; width: 100%;">
+                    Ajukan Cicilan
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+const systemConfig = <%- JSON.stringify(systemConfig) %>;
+const totalPrice = <%= totalPrice %>;
+
+async function calculatePreview() {
+    const dpAmount = parseFloat(document.getElementById('dpAmount').value);
+    const tenor = parseInt(document.getElementById('tenor').value);
+
+    if (!dpAmount || !tenor) {
+        showAlert('Mohon isi DP dan Tenor terlebih dahulu', 'warning');
+        return;
+    }
+
+    try {
+        const response = await API.post('/api/installments/calculate', {
+            product_id: <%= product.id %>,
+            dp_amount: dpAmount,
+            tenor: tenor
+        });
+
+        if (response.success) {
+            const calc = response.data.calculation;
+
+            document.getElementById('sim-total').textContent = formatCurrency(totalPrice);
+            document.getElementById('sim-dp').textContent = formatCurrency(dpAmount);
+            document.getElementById('sim-admin').textContent = formatCurrency(calc.adminFee);
+            document.getElementById('sim-principal').textContent = formatCurrency(calc.principalAmount);
+            document.getElementById('sim-margin').textContent = formatCurrency(calc.totalMargin);
+            document.getElementById('sim-monthly').textContent = formatCurrency(calc.monthlyPayment);
+            document.getElementById('sim-total-payment').textContent = formatCurrency(calc.totalPayment);
+
+            document.getElementById('simulationResult').style.display = 'block';
+        }
+    } catch (error) {
+        showAlert(error.message || 'Gagal menghitung simulasi', 'danger');
+    }
+}
+
+async function handleApply(event) {
+    event.preventDefault();
+
+    if (!confirm('Apakah Anda yakin ingin mengajukan cicilan ini?')) return;
+
+    const formData = new FormData(event.target);
+    const data = Object.fromEntries(formData.entries());
+
+    const btn = document.getElementById('submitBtn');
+    setButtonLoading(btn, true);
+
+    try {
+        const response = await API.post('/api/installments', {
+            product_id: parseInt(data.product_id),
+            dp_amount: parseFloat(data.dp_amount),
+            tenor: parseInt(data.tenor)
+        });
+
+        if (response.success) {
+            showAlert('Pengajuan cicilan berhasil!', 'success');
+            setTimeout(() => {
+                window.location.href = '/user/installments/' + response.data.header.id;
+            }, 1000);
+        }
+    } catch (error) {
+        showAlert(error.message || 'Gagal mengajukan cicilan', 'danger');
+    } finally {
+        setButtonLoading(btn, false);
+    }
+}
+</script>
+
+<%- include('../partials/footer') %>

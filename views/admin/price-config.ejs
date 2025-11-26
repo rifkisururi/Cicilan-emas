@@ -1,0 +1,105 @@
+<%- include('../partials/header') %>
+
+<div class="page-header flex-between">
+    <div>
+        <h1><%= title %></h1>
+        <p>Kelola harga emas harian</p>
+    </div>
+    <button class="btn btn-primary" onclick="openModal('addPriceModal')">
+        + Tambah/Update Harga
+    </button>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Tanggal</th>
+                    <th>Harga Beli (per gram)</th>
+                    <th>Harga Jual (per gram)</th>
+                    <th>Catatan</th>
+                    <th>Update Terakhir</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (priceConfigs.length === 0) { %>
+                    <tr>
+                        <td colspan="5" class="text-center">Tidak ada data</td>
+                    </tr>
+                <% } else { %>
+                    <% priceConfigs.forEach(price => { %>
+                        <tr>
+                            <td><%= formatDate(price.price_date) %></td>
+                            <td><%= formatCurrency(price.buy_price) %></td>
+                            <td><%= formatCurrency(price.sell_price) %></td>
+                            <td><%= price.notes || '-' %></td>
+                            <td><%= formatDateTime(price.updated_at) %></td>
+                        </tr>
+                    <% }) %>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add/Update Price Modal -->
+<div id="addPriceModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Tambah/Update Harga Emas</h2>
+            <button class="modal-close" onclick="closeModal('addPriceModal')">&times;</button>
+        </div>
+        <form id="addPriceForm" onsubmit="handleAddPrice(event)">
+            <div class="form-group">
+                <label>Tanggal</label>
+                <input type="date" name="price_date" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>Harga Beli (per gram)</label>
+                <input type="number" name="buy_price" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>Harga Jual (per gram)</label>
+                <input type="number" name="sell_price" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>Catatan</label>
+                <textarea name="notes" class="form-control"></textarea>
+            </div>
+            <div class="flex gap-2">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('addPriceModal')">Batal</button>
+                <button type="submit" class="btn btn-primary">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Set default date to today
+document.addEventListener('DOMContentLoaded', () => {
+    const dateInput = document.querySelector('[name="price_date"]');
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.value = today;
+});
+
+async function handleAddPrice(event) {
+    event.preventDefault();
+
+    const formData = new FormData(event.target);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+        const response = await API.post('/api/price-config', data);
+
+        if (response.success) {
+            showAlert('Harga berhasil disimpan', 'success');
+            setTimeout(() => location.reload(), 1000);
+        }
+    } catch (error) {
+        showAlert(error.message || 'Gagal menyimpan harga', 'danger');
+    }
+}
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,13 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+.env
+README.md
+.DS_Store
+.vscode
+.idea
+*.md
+!README.md
+src/public/uploads/*
+!src/public/uploads/.gitkeep

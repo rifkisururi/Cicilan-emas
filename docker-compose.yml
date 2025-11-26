@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  # Node.js Application
+  app:
+    build: .
+    container_name: cicilan-emas-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      # Environment variables akan diambil dari .env file atau system environment
+      - DB_HOST=${DB_HOST:-localhost}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_NAME=${DB_NAME:-cicilan_emas_db}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - SESSION_SECRET=${SESSION_SECRET:-cicilan-emas-secret-key-2024}
+      - UPLOAD_DIR=src/public/uploads
+      - MAX_FILE_SIZE=5242880
+    volumes:
+      - ./src/public/uploads:/app/src/public/uploads
+    # Menggunakan host network untuk akses ke PostgreSQL di server terpisah
+    network_mode: host
+    restart: unless-stopped

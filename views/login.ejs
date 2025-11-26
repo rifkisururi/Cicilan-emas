@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Cicilan Emas</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1>🏆 Cicilan Emas</h1>
+                <p>Platform Cicilan Emas Terpercaya</p>
+            </div>
+
+            <% if (error) { %>
+                <div class="alert alert-danger">
+                    <%= error %>
+                </div>
+            <% } %>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        class="form-control"
+                        required
+                        placeholder="Masukkan username"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        class="form-control"
+                        required
+                        placeholder="Masukkan password"
+                    >
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg" id="loginBtn">
+                    Login
+                </button>
+            </form>
+
+            <div style="margin-top: 1.5rem; text-align: center;">
+                <p style="color: var(--gray-text); font-size: 0.875rem;">
+                    Belum punya akun?
+                    <a href="#" onclick="showRegisterForm()" style="color: var(--info-color);">Daftar</a>
+                </p>
+            </div>
+
+            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                <p style="color: var(--gray-text); font-size: 0.75rem; text-align: center;">
+                    <strong>Demo Credentials:</strong><br>
+                    Admin: admin / admin123<br>
+                    User: user1 / admin123
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Registrasi Akun Baru</h2>
+                <button class="modal-close" onclick="closeModal('registerModal')">&times;</button>
+            </div>
+            <form id="registerForm" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label for="reg_username">Username</label>
+                    <input
+                        type="text"
+                        id="reg_username"
+                        name="username"
+                        class="form-control"
+                        required
+                        placeholder="Masukkan username"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="reg_fullName">Nama Lengkap</label>
+                    <input
+                        type="text"
+                        id="reg_fullName"
+                        name="fullName"
+                        class="form-control"
+                        required
+                        placeholder="Masukkan nama lengkap"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="reg_email">Email</label>
+                    <input
+                        type="email"
+                        id="reg_email"
+                        name="email"
+                        class="form-control"
+                        required
+                        placeholder="Masukkan email"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="reg_phone">Nomor Telepon</label>
+                    <input
+                        type="tel"
+                        id="reg_phone"
+                        name="phone"
+                        class="form-control"
+                        placeholder="Masukkan nomor telepon (opsional)"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="reg_password">Password</label>
+                    <input
+                        type="password"
+                        id="reg_password"
+                        name="password"
+                        class="form-control"
+                        required
+                        placeholder="Masukkan password"
+                    >
+                </div>
+
+                <div class="flex gap-2">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('registerModal')">
+                        Batal
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="registerBtn">
+                        Daftar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/main.js"></script>
+    <script>
+        function showRegisterForm() {
+            openModal('registerModal');
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            const form = event.target;
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            const btn = document.getElementById('loginBtn');
+            setButtonLoading(btn, true);
+
+            try {
+                const response = await API.post('/auth/login', data);
+
+                if (response.success) {
+                    showAlert('Login berhasil!', 'success');
+                    setTimeout(() => {
+                        window.location.href = response.redirectUrl;
+                    }, 500);
+                }
+            } catch (error) {
+                showAlert(error.message || 'Login gagal', 'danger');
+            } finally {
+                setButtonLoading(btn, false);
+            }
+        }
+
+        async function handleRegister(event) {
+            event.preventDefault();
+
+            const form = event.target;
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            const btn = document.getElementById('registerBtn');
+            setButtonLoading(btn, true);
+
+            try {
+                const response = await API.post('/auth/register', data);
+
+                if (response.success) {
+                    showAlert('Registrasi berhasil!', 'success');
+                    setTimeout(() => {
+                        window.location.href = response.redirectUrl;
+                    }, 500);
+                }
+            } catch (error) {
+                showAlert(error.message || 'Registrasi gagal', 'danger');
+            } finally {
+                setButtonLoading(btn, false);
+            }
+        }
+    </script>
+</body>
+</html>

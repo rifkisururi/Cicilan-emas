@@ -1,0 +1,49 @@
+<%- include('../partials/header') %>
+
+<div class="page-header">
+    <h1><%= title %></h1>
+    <p>Pilih produk emas untuk cicilan Anda</p>
+</div>
+
+<% if (currentPrice) { %>
+    <div class="alert alert-info">
+        <strong>Harga Emas Hari Ini:</strong>
+        Beli: <%= formatCurrency(currentPrice.buy_price) %>/gram |
+        Jual: <%= formatCurrency(currentPrice.sell_price) %>/gram
+        <br>
+        <small>Update: <%= formatDate(currentPrice.price_date) %></small>
+    </div>
+<% } %>
+
+<div class="product-grid">
+    <% products.forEach(product => { %>
+        <div class="product-card">
+            <%
+            const primaryImage = product.images.find(img => img.is_primary);
+            const imagePath = primaryImage ? primaryImage.image_path : null;
+            const sellPrice = currentPrice ? currentPrice.sell_price : product.base_price;
+            const totalPrice = sellPrice * product.weight_gram;
+            %>
+            <% if (imagePath) { %>
+                <img src="<%= imagePath %>" alt="<%= product.product_name %>" class="product-image">
+            <% } else { %>
+                <div class="product-image" style="display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);">
+                    <span style="font-size: 3rem;">🏆</span>
+                </div>
+            <% } %>
+            <div class="product-body">
+                <div class="product-name"><%= product.product_name %></div>
+                <div class="product-weight">Berat: <%= product.weight_gram %> gram</div>
+                <div class="product-price"><%= formatCurrency(totalPrice) %></div>
+                <div style="font-size: 0.875rem; color: var(--gray-text); margin-bottom: 1rem;">
+                    Harga per gram: <%= formatCurrency(sellPrice) %>
+                </div>
+                <a href="/user/apply/<%= product.id %>" class="btn btn-primary" style="width: 100%;">
+                    Ajukan Cicilan
+                </a>
+            </div>
+        </div>
+    <% }) %>
+</div>
+
+<%- include('../partials/footer') %>

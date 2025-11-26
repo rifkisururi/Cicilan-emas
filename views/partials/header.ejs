@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Cicilan Emas</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <% if (user) { %>
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <a href="/" class="navbar-brand">
+                🏆 Cicilan Emas
+            </a>
+            <ul class="navbar-menu">
+                <% if (user.role === 'admin') { %>
+                    <li><a href="/admin/dashboard">Dashboard</a></li>
+                    <li><a href="/admin/products">Produk</a></li>
+                    <li><a href="/admin/price-config">Harga</a></li>
+                    <li><a href="/admin/system-config">Konfigurasi</a></li>
+                    <li><a href="/admin/installments">Cicilan</a></li>
+                    <li><a href="/admin/users">Users</a></li>
+                <% } else { %>
+                    <li><a href="/user/dashboard">Dashboard</a></li>
+                    <li><a href="/user/products">Produk Emas</a></li>
+                    <li><a href="/user/installments">Cicilan Saya</a></li>
+                    <li><a href="/user/payments">Pembayaran</a></li>
+                <% } %>
+            </ul>
+            <div class="navbar-user">
+                <span><%= user.fullName %></span>
+                <button class="btn btn-danger btn-sm" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </nav>
+    <% } %>
+
+    <div class="container" style="padding-top: 2rem; padding-bottom: 2rem;">

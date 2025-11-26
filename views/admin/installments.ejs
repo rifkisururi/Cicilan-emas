@@ -1,0 +1,93 @@
+<%- include('../partials/header') %>
+
+<div class="page-header">
+    <h1><%= title %></h1>
+    <p>Kelola semua pengajuan dan cicilan</p>
+</div>
+
+<div class="card">
+    <div class="card-header flex-between">
+        <span>Filter Status</span>
+        <div class="flex gap-1">
+            <a href="/admin/installments" class="btn btn-sm <%= currentStatus === 'all' ? 'btn-primary' : 'btn-secondary' %>">Semua</a>
+            <a href="/admin/installments?status=pending" class="btn btn-sm <%= currentStatus === 'pending' ? 'btn-warning' : 'btn-secondary' %>">Pending</a>
+            <a href="/admin/installments?status=approved" class="btn btn-sm <%= currentStatus === 'approved' ? 'btn-info' : 'btn-secondary' %>">Approved</a>
+            <a href="/admin/installments?status=active" class="btn btn-sm <%= currentStatus === 'active' ? 'btn-success' : 'btn-secondary' %>">Active</a>
+            <a href="/admin/installments?status=completed" class="btn btn-sm <%= currentStatus === 'completed' ? 'btn-secondary' : 'btn-secondary' %>">Completed</a>
+        </div>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>No. Cicilan</th>
+                    <th>User</th>
+                    <th>Produk</th>
+                    <th>DP</th>
+                    <th>Tenor</th>
+                    <th>Cicilan/Bulan</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (installments.length === 0) { %>
+                    <tr>
+                        <td colspan="9" class="text-center">Tidak ada data</td>
+                    </tr>
+                <% } else { %>
+                    <% installments.forEach(inst => { %>
+                        <tr>
+                            <td><%= inst.installment_number %></td>
+                            <td>
+                                <%= inst.user_name %><br>
+                                <small style="color: var(--gray-text);"><%= inst.user_email %></small>
+                            </td>
+                            <td><%= inst.product_name %> (<%= inst.product_weight %>g)</td>
+                            <td><%= formatCurrency(inst.dp_amount) %></td>
+                            <td><%= inst.tenor_months %> bulan</td>
+                            <td><%= formatCurrency(inst.monthly_payment) %></td>
+                            <td><%= formatCurrency(inst.total_payment) %></td>
+                            <td>
+                                <span class="badge badge-<%= inst.status %>">
+                                    <%= inst.status %>
+                                </span>
+                            </td>
+                            <td>
+                                <div class="flex gap-1">
+                                    <a href="/admin/installments/<%= inst.id %>" class="btn btn-sm btn-info">Detail</a>
+                                    <% if (inst.status === 'pending') { %>
+                                        <button class="btn btn-sm btn-success" onclick="updateStatus(<%= inst.id %>, 'approved')">Approve</button>
+                                    <% } %>
+                                    <% if (inst.status === 'approved') { %>
+                                        <button class="btn btn-sm btn-primary" onclick="updateStatus(<%= inst.id %>, 'active')">Aktifkan</button>
+                                    <% } %>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+async function updateStatus(id, status) {
+    if (!confirm(`Apakah Anda yakin ingin mengubah status menjadi "${status}"?`)) return;
+
+    try {
+        const response = await API.put(`/api/installments/${id}/status`, { status });
+
+        if (response.success) {
+            showAlert('Status berhasil diupdate', 'success');
+            setTimeout(() => location.reload(), 1000);
+        }
+    } catch (error) {
+        showAlert(error.message || 'Gagal mengupdate status', 'danger');
+    }
+}
+</script>
+
+<%- include('../partials/footer') %>

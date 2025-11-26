@@ -1,0 +1,78 @@
+<%- include('../partials/header') %>
+
+<div class="page-header">
+    <h1><%= title %></h1>
+    <p>Selamat datang, <%= user.fullName %>!</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>Total Users</h3>
+        <div class="stat-value"><%= statistics.totalUsers %></div>
+    </div>
+    <div class="stat-card">
+        <h3>Total Produk Aktif</h3>
+        <div class="stat-value"><%= statistics.totalProducts %></div>
+    </div>
+    <div class="stat-card">
+        <h3>Pengajuan Pending</h3>
+        <div class="stat-value"><%= statistics.pendingInstallments %></div>
+    </div>
+    <div class="stat-card">
+        <h3>Cicilan Aktif</h3>
+        <div class="stat-value"><%= statistics.activeInstallments %></div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header flex-between">
+        <span>Pengajuan Cicilan Terbaru</span>
+        <a href="/admin/installments" class="btn btn-sm btn-primary">Lihat Semua</a>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>No. Cicilan</th>
+                    <th>User</th>
+                    <th>Produk</th>
+                    <th>Tenor</th>
+                    <th>Total Pembayaran</th>
+                    <th>Status</th>
+                    <th>Tanggal</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (recentInstallments.length === 0) { %>
+                    <tr>
+                        <td colspan="8" class="text-center">Tidak ada data</td>
+                    </tr>
+                <% } else { %>
+                    <% recentInstallments.forEach(installment => { %>
+                        <tr>
+                            <td><%= installment.installment_number %></td>
+                            <td><%= installment.user_name %></td>
+                            <td><%= installment.product_name %> (<%= installment.product_weight %>g)</td>
+                            <td><%= installment.tenor_months %> bulan</td>
+                            <td><%= formatCurrency(installment.total_payment) %></td>
+                            <td>
+                                <span class="badge badge-<%= installment.status %>">
+                                    <%= installment.status %>
+                                </span>
+                            </td>
+                            <td><%= formatDate(installment.created_at) %></td>
+                            <td>
+                                <a href="/admin/installments/<%= installment.id %>" class="btn btn-sm btn-info">
+                                    Detail
+                                </a>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

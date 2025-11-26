@@ -1,0 +1,47 @@
+<%- include('../partials/header') %>
+
+<div class="page-header">
+    <h1><%= title %></h1>
+    <p>Daftar pembayaran yang telah dilakukan</p>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Tanggal Bayar</th>
+                    <th>No. Cicilan</th>
+                    <th>Produk</th>
+                    <th>Bulan Ke</th>
+                    <th>Jatuh Tempo</th>
+                    <th>Jumlah</th>
+                    <th>Metode</th>
+                    <th>Referensi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (payments.length === 0) { %>
+                    <tr>
+                        <td colspan="8" class="text-center">Belum ada pembayaran</td>
+                    </tr>
+                <% } else { %>
+                    <% payments.forEach(payment => { %>
+                        <tr>
+                            <td><%= formatDateTime(payment.payment_date) %></td>
+                            <td><%= payment.installment_number %></td>
+                            <td><%= payment.product_name %></td>
+                            <td><%= payment.month_number %></td>
+                            <td><%= formatDate(payment.due_date) %></td>
+                            <td><%= formatCurrency(payment.payment_amount) %></td>
+                            <td><%= payment.payment_method || '-' %></td>
+                            <td><%= payment.reference_number || '-' %></td>
+                        </tr>
+                    <% }) %>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

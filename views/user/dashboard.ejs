@@ -1,0 +1,110 @@
+<%- include('../partials/header') %>
+
+<div class="page-header">
+    <h1><%= title %></h1>
+    <p>Selamat datang, <%= user.fullName %>!</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>Cicilan Aktif</h3>
+        <div class="stat-value"><%= statistics.activeInstallments %></div>
+    </div>
+    <div class="stat-card">
+        <h3>Cicilan Selesai</h3>
+        <div class="stat-value"><%= statistics.completedInstallments %></div>
+    </div>
+    <div class="stat-card">
+        <h3>Menunggu Persetujuan</h3>
+        <div class="stat-value"><%= statistics.pendingInstallments %></div>
+    </div>
+    <div class="stat-card">
+        <h3>Total Tunggakan</h3>
+        <div class="stat-value"><%= formatCurrency(statistics.totalOutstanding) %></div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header flex-between">
+        <span>Cicilan Saya</span>
+        <a href="/user/products" class="btn btn-sm btn-primary">Ajukan Cicilan Baru</a>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>No. Cicilan</th>
+                    <th>Produk</th>
+                    <th>Tenor</th>
+                    <th>Cicilan/Bulan</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (installments.length === 0) { %>
+                    <tr>
+                        <td colspan="6" class="text-center">
+                            Belum ada cicilan. <a href="/user/products">Ajukan cicilan pertama Anda!</a>
+                        </td>
+                    </tr>
+                <% } else { %>
+                    <% installments.forEach(inst => { %>
+                        <tr>
+                            <td><%= inst.installment_number %></td>
+                            <td><%= inst.product_name %> (<%= inst.product_weight %>g)</td>
+                            <td><%= inst.tenor_months %> bulan</td>
+                            <td><%= formatCurrency(inst.monthly_payment) %></td>
+                            <td>
+                                <span class="badge badge-<%= inst.status %>">
+                                    <%= inst.status %>
+                                </span>
+                            </td>
+                            <td>
+                                <a href="/user/installments/<%= inst.id %>" class="btn btn-sm btn-info">Detail</a>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<% if (upcomingPayments.length > 0) { %>
+    <div class="card">
+        <div class="card-header">Pembayaran Mendatang</div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>No. Cicilan</th>
+                        <th>Produk</th>
+                        <th>Bulan Ke</th>
+                        <th>Jatuh Tempo</th>
+                        <th>Jumlah</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% upcomingPayments.forEach(payment => { %>
+                        <tr>
+                            <td><%= payment.installment_number %></td>
+                            <td><%= payment.product_name %> (<%= payment.product_weight %>g)</td>
+                            <td><%= payment.month_number %></td>
+                            <td><%= formatDate(payment.due_date) %></td>
+                            <td><%= formatCurrency(payment.total_amount) %></td>
+                            <td>
+                                <span class="badge badge-<%= payment.payment_status %>">
+                                    <%= payment.payment_status %>
+                                </span>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+<% } %>
+
+<%- include('../partials/footer') %>
