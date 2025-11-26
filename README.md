@@ -37,6 +37,36 @@ Platform fullstack berbasis Node.js untuk mengelola cicilan pembelian emas denga
 - **Frontend**: HTML5, CSS3, Vanilla JavaScript
 - **Containerization**: Docker & Docker Compose
 
+## 🐳 Docker Hub Image
+
+Pre-built Docker image tersedia di Docker Hub untuk deployment cepat:
+
+```bash
+# Pull image dari Docker Hub
+docker pull <your-username>/cicilan-emas:latest
+
+# Run container
+docker run -d \
+  -p 3000:3000 \
+  -e DB_HOST=your-db-host \
+  -e DB_PORT=5432 \
+  -e DB_NAME=cicilan_emas_db \
+  -e DB_USER=postgres \
+  -e DB_PASSWORD=your-password \
+  -e SESSION_SECRET=your-secret-key \
+  --name cicilan-emas-app \
+  <your-username>/cicilan-emas:latest
+```
+
+**Build & Push ke Docker Hub:**
+```bash
+# Menggunakan script otomatis
+chmod +x docker-build-push.sh
+./docker-build-push.sh <your-dockerhub-username>
+```
+
+Lihat [DOCKER_HUB.md](DOCKER_HUB.md) untuk panduan lengkap.
+
 ## 📦 Struktur Database
 
 ### Master Tables
