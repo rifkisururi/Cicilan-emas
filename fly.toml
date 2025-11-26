@@ -1,0 +1,28 @@
+# fly.toml app configuration file generated for cicilan-emas
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "cicilan-emas"
+primary_region = "sin"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "8080"
+  UPLOAD_DIR = "src/public/uploads"
+  MAX_FILE_SIZE = "5242880"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
